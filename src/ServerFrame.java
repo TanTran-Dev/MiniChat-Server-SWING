@@ -13,7 +13,7 @@ public class ServerFrame extends JFrame implements Runnable {
     // Variables declaration - do not modify
     private JButton btnSave;
     private JButton btnSend;
-    private JTextField edtIPAddressReceiver;
+    private JLabel txtIPAddressReceiver;
     private JTextField edtInputMessage;
     private JTextField edtPort;
     private JTextField edtSenderName;
@@ -58,7 +58,7 @@ public class ServerFrame extends JFrame implements Runnable {
 
         panelConfig = new JPanel();
         labelIPAddressReceiver = new JLabel();
-        edtIPAddressReceiver = new JTextField();
+        txtIPAddressReceiver = new JLabel();
         labelSenderName = new JLabel();
         edtSenderName = new JTextField();
         labelPort = new JLabel();
@@ -79,14 +79,14 @@ public class ServerFrame extends JFrame implements Runnable {
             e.printStackTrace();
         }
 
-        edtIPAddressReceiver.setText(String.valueOf(inetAddress.getHostAddress()));
+        txtIPAddressReceiver.setText(String.valueOf(inetAddress.getHostAddress()));
 
         edtSenderName.setText(inetAddress.getHostName());
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         panelConfig.setBorder(BorderFactory.createTitledBorder(null, "Cấu hình"));
 
-        labelIPAddressReceiver.setText("IP Người nhận:");
+        labelIPAddressReceiver.setText("IP Máy chủ:");
 
 
         labelSenderName.setText("Tên người gửi:");
@@ -94,20 +94,14 @@ public class ServerFrame extends JFrame implements Runnable {
 
         labelPort.setText("Cổng:");
 
-        edtPort.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                edtPortActionPerformed(evt);
-            }
-        });
+        edtPort.addActionListener(evt -> edtPortActionPerformed(evt));
 
-        btnSave.setText("Start Server");
-        btnSave.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                try {
-                    btnSaveActionPerformed(evt);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        btnSave.setText("Run Server");
+        btnSave.addActionListener(evt -> {
+            try {
+                btnSaveActionPerformed(evt);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
 
@@ -133,7 +127,7 @@ public class ServerFrame extends JFrame implements Runnable {
                                         .addComponent(labelSenderName))
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(panelConfigLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(edtIPAddressReceiver, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
+                                        .addComponent(txtIPAddressReceiver, GroupLayout.DEFAULT_SIZE, 154, Short.MAX_VALUE)
                                         .addComponent(edtSenderName))
                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(labelPort)
@@ -151,7 +145,7 @@ public class ServerFrame extends JFrame implements Runnable {
                                                 .addGap(8, 8, 8)
                                                 .addGroup(panelConfigLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                                         .addComponent(labelIPAddressReceiver)
-                                                        .addComponent(edtIPAddressReceiver, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE))
+                                                        .addComponent(txtIPAddressReceiver, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE))
                                                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                                                 .addGroup(panelConfigLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                                         .addComponent(edtSenderName, GroupLayout.PREFERRED_SIZE, 45, GroupLayout.PREFERRED_SIZE)
@@ -258,6 +252,7 @@ public class ServerFrame extends JFrame implements Runnable {
     private void startThread() {
         thread = new Thread(this);
         thread.start();
+        JOptionPane.showMessageDialog(null,"Server is running...");
     }
 
     private void sendData() throws IOException {
@@ -270,23 +265,27 @@ public class ServerFrame extends JFrame implements Runnable {
         serverSocket.send(sendPacket);
     }
 
+    private void observe(){
+        receiveData = new byte[1024];
+        try {
+            receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            serverSocket.receive(receivePacket);
+            IPAddress = receivePacket.getAddress();
+            port = receivePacket.getPort();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        requestByClient = new String(receivePacket.getData()).trim();
+        System.out.println("RECEIVER: " + requestByClient);
+        messages.add(requestByClient);
+        listModel.addElement(requestByClient);
+    }
+
     @Override
     public void run() {
         while (!isRunning) {
-            receiveData = new byte[1024];
-            try {
-                receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                serverSocket.receive(receivePacket);
-                IPAddress = receivePacket.getAddress();
-                port = receivePacket.getPort();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            requestByClient = new String(receivePacket.getData()).trim();
-            System.out.println("RECEIVER: " + requestByClient);
-            messages.add(requestByClient);
-            listModel.addElement(requestByClient);
+           observe();
         }
     }
 }
