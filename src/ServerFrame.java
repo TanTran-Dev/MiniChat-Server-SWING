@@ -26,18 +26,18 @@ public class ServerFrame extends JFrame implements Runnable {
     private JPanel panelConfig;
     // End of variables declaration
     private List<String> messages;
-    DatagramSocket serverSocket;
-    DatagramPacket receivePacket;
-    InetAddress inetAddress;
+    private DatagramSocket serverSocket;
+    private DatagramPacket receivePacket;
+    private InetAddress inetAddress;
 
-    String requestByClient;
-    String response = "";
+    private String requestByClient;
+    private String response = "";
     private Thread thread;
 
-    byte[] receiveData;
-    byte[] sendData;
-    InetAddress IPAddress;
-    int port;
+    private byte[] receiveData;
+    private byte[] sendData;
+    private InetAddress IPAddress;
+    private int port;
 
     private DefaultListModel<String> listModel;
     private boolean isRunning;
@@ -235,19 +235,29 @@ public class ServerFrame extends JFrame implements Runnable {
     }
 
     private void btnSaveActionPerformed(ActionEvent event) throws IOException {
-        if (!edtPort.getText().isEmpty()) {
-            createServer();
-            startThread();
-        } else {
-            JOptionPane.showMessageDialog(null, "Port không được để trống");
+        if (!isRunning){
+            if (!edtPort.getText().isEmpty()) {
+                createServer();
+                startThread();
+                JOptionPane.showMessageDialog(null, "Đã khởi chạy Server...");
+                isRunning = true;
+            } else {
+                JOptionPane.showMessageDialog(null, "Port không được để trống");
+            }
+        }else {
+            JOptionPane.showMessageDialog(null, "Server running...");
         }
     }
 
     private void btnSendActionPerformed(ActionEvent event) throws IOException {
         if (isRunning) {
             if (!edtPort.getText().isEmpty()) {
-                sendData();
-                edtInputMessage.setText("");
+                if (IPAddress != null){
+                    sendData();
+                    edtInputMessage.setText("");
+                }else {
+                    JOptionPane.showMessageDialog(null, "Không có Client nào được kết nối!");
+                }
             } else {
                 JOptionPane.showMessageDialog(null, "Port không được để trống");
             }
@@ -268,7 +278,6 @@ public class ServerFrame extends JFrame implements Runnable {
     private void startThread() {
         thread = new Thread(this);
         thread.start();
-        JOptionPane.showMessageDialog(null, "Đã khởi chạy Server...");
     }
 
     private void sendData() throws IOException {
