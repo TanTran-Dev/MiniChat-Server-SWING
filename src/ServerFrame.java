@@ -235,24 +235,40 @@ public class ServerFrame extends JFrame implements Runnable {
     }
 
     private void btnSaveActionPerformed(ActionEvent event) throws IOException {
-        createServer();
-        startThread();
+        if (!edtPort.getText().isEmpty()) {
+            createServer();
+            startThread();
+        } else {
+            JOptionPane.showMessageDialog(null, "Port không được để trống");
+        }
     }
 
     private void btnSendActionPerformed(ActionEvent event) throws IOException {
-        sendData();
-        edtInputMessage.setText("");
+        if (isRunning) {
+            if (!edtPort.getText().isEmpty()) {
+                sendData();
+                edtInputMessage.setText("");
+            } else {
+                JOptionPane.showMessageDialog(null, "Port không được để trống");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Server chưa được khởi chạy");
+        }
     }
 
     private void createServer() throws IOException {
-        int port = Integer.parseInt(edtPort.getText().trim());
-        serverSocket = new DatagramSocket(port);
+        if (!edtPort.getText().isEmpty()) {
+            int port = Integer.parseInt(edtPort.getText().trim());
+            serverSocket = new DatagramSocket(port);
+        } else {
+            JOptionPane.showMessageDialog(null, "Port không được để trống");
+        }
     }
 
     private void startThread() {
         thread = new Thread(this);
         thread.start();
-        JOptionPane.showMessageDialog(null,"Server is running...");
+        JOptionPane.showMessageDialog(null, "Đã khởi chạy Server...");
     }
 
     private void sendData() throws IOException {
@@ -262,10 +278,15 @@ public class ServerFrame extends JFrame implements Runnable {
 
         sendData = response.getBytes();
         DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-        serverSocket.send(sendPacket);
+
+        if (IPAddress == null) {
+            JOptionPane.showMessageDialog(null, "Không có Client nào được kết nối!");
+        } else {
+            serverSocket.send(sendPacket);
+        }
     }
 
-    private void observe(){
+    private void observe() {
         receiveData = new byte[1024];
         try {
             receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -285,7 +306,7 @@ public class ServerFrame extends JFrame implements Runnable {
     @Override
     public void run() {
         while (!isRunning) {
-           observe();
+            observe();
         }
     }
 }
