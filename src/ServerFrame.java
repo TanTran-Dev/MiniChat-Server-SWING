@@ -235,34 +235,29 @@ public class ServerFrame extends JFrame implements Runnable {
     }
 
     private void btnSaveActionPerformed(ActionEvent event) throws IOException {
-        if (!isRunning){
-            if (!edtPort.getText().isEmpty()) {
-                createServer();
-                startThread();
-                JOptionPane.showMessageDialog(null, "Đã khởi chạy Server...");
-                isRunning = true;
-            } else {
-                JOptionPane.showMessageDialog(null, "Port không được để trống");
-            }
-        }else {
-            JOptionPane.showMessageDialog(null, "Server running...");
+        if (!edtPort.getText().isEmpty()) {
+            createServer();
+            startThread();
+            JOptionPane.showMessageDialog(null, "Đã khởi chạy Server...");
+        } else {
+            JOptionPane.showMessageDialog(null, "Port không được để trống");
         }
     }
 
     private void btnSendActionPerformed(ActionEvent event) throws IOException {
-        if (isRunning) {
+        if (!edtInputMessage.getText().isEmpty()) {
             if (!edtPort.getText().isEmpty()) {
-                if (IPAddress != null){
+                if (IPAddress != null) {
                     sendData();
                     edtInputMessage.setText("");
-                }else {
+                } else {
                     JOptionPane.showMessageDialog(null, "Không có Client nào được kết nối!");
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Port không được để trống");
             }
-        } else {
-            JOptionPane.showMessageDialog(null, "Server chưa được khởi chạy");
+        }else {
+            JOptionPane.showMessageDialog(null, "Nhập Message!!!");
         }
     }
 
